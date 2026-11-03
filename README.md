@@ -14,8 +14,8 @@ Get all of this working **before the session starts**. There's no setup help dur
 2. **Clone this repo and install dependencies:**
 
    ```bash
-   git clone https://github.com/mezielabs/build-your-first-ai-powered-app-workshop.git
-   cd build-your-first-ai-powered-app-workshop
+   git clone https://github.com/mezielabs/build-a-streaming-ai-assistant-in-typescript.git
+   cd build-a-streaming-ai-assistant-in-typescript
    npm ci
    ```
 

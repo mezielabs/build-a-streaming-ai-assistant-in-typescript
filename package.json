@@ -2,7 +2,7 @@
   "name": "writing-assistant-workshop",
   "version": "2.0.0",
   "private": true,
-  "description": "Build Your First AI-Powered App: a streaming, multi-turn writing assistant in TypeScript and React (Mezie Labs live workshop)",
+  "description": "Build a Streaming AI Assistant in TypeScript: a streaming, multi-turn writing assistant in TypeScript and React (Mezie Labs live workshop)",
   "type": "module",
   "engines": {
     "node": ">=22.18"

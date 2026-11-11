@@ -14,8 +14,10 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@ai-sdk/groq": "4.0.72",
+    "@ai-sdk/react": "4.0.160",
+    "ai": "7.0.156",
     "express": "5.2.1",
-    "openai": "7.30.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.5"

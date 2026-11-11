@@ -1,24 +1,20 @@
 import { createServer } from "node:http";
 import express from "express";
-import OpenAI from "openai";
+import { createGroq } from "@ai-sdk/groq";
+import { convertToModelMessages, streamText } from "ai";
 import { createServer as createViteServer } from "vite";
-import { ChatRequestSchema, type ChatReply } from "./shared/chat.ts";
+import { ChatRequestSchema } from "./shared/chat.ts";
 
-const MODEL = "openai/gpt-oss-20b";
+// The provider reads GROQ_API_KEY from .env. Switching to another provider means
+// changing these two lines and installing its package; nothing else in the app changes.
+const groq = createGroq({ baseURL: process.env.GROQ_BASE_URL || undefined });
+const model = groq("openai/gpt-oss-20b");
 
-// The server owns the system message. The browser never sends one.
-const SYSTEM_MESSAGE =
+// The server owns the instructions. The browser never sends them.
+const INSTRUCTIONS =
   "You are a writing assistant. Write clear, natural drafts in plain text. " +
   "When the user asks for a change, revise your most recent draft and reply " +
   "with the full revised draft only, with no preamble.";
-
-const client = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: process.env.GROQ_BASE_URL,
-  // Fail fast: the SDK would otherwise retry a 429 after Groq's retry-after
-  // delay, leaving the page waiting with no feedback. The user can retry.
-  maxRetries: 0,
-});
 
 const app = express();
 
@@ -27,15 +23,6 @@ app.use(express.json({ limit: "100kb" }));
 app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
-
-// Turns a provider error into a safe status and message for the browser.
-// The full detail stays in the server log.
-function describeError(error: unknown) {
-  if (error instanceof OpenAI.APIError && error.status === 429) {
-    return { status: 429, message: "Too many requests right now. Wait a minute and try again." };
-  }
-  return { status: 502, message: "Couldn't get a reply right now. Try again." };
-}
 
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -50,35 +37,25 @@ app.post("/api/chat", async (req, res) => {
   }
   const { messages } = parsed.data;
 
-  let response;
+  const result = streamText({
+    model,
+    instructions: INSTRUCTIONS,
+    // The whole conversation goes to the model on every request. That's the app's memory.
+    messages: await convertToModelMessages(messages),
+    reasoning: "low",
+    maxOutputTokens: 1024,
+    // Fail fast: retrying a 429 leaves the page waiting with no feedback. The user can retry.
+    maxRetries: 0,
+  });
+
+  // Stream the reply to useChat in the browser. Reasoning stays on the server.
   try {
-    response = await client.chat.completions.create({
-      model: MODEL,
-      reasoning_effort: "low",
-      max_completion_tokens: 1024,
-      messages: [{ role: "system", content: SYSTEM_MESSAGE }, ...messages],
-    });
+    await result.pipeUIMessageStreamToResponse(res, { sendReasoning: false });
   } catch (error) {
-    console.error("[chat] Groq request failed:", errorText(error));
-    const { status, message } = describeError(error);
-    res.status(status).json({ error: message });
-    return;
+    // The connection to Groq broke mid-reply. End the response so the browser isn't left waiting.
+    console.error("[chat] stream failed:", errorText(error));
+    res.end();
   }
-
-  const choice = response.choices[0];
-  const reply = choice.message.content ?? "";
-  console.log(
-    `[chat] ${messages.length} messages, prompt tokens: ${response.usage?.prompt_tokens}, ` +
-      `completion tokens: ${response.usage?.completion_tokens}`,
-  );
-
-  if (choice.finish_reason !== "stop" || reply.trim() === "") {
-    console.warn(`[chat] unusable reply, finish reason: ${choice.finish_reason}`);
-    res.status(502).json({ error: "The reply was cut off. Try asking for something shorter." });
-    return;
-  }
-
-  res.json({ reply } satisfies ChatReply);
 });
 
 // Vite serves the React app and turns its TypeScript into JavaScript the browser can run.

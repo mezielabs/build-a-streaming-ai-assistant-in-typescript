@@ -1,20 +1,37 @@
 // The contract between the browser and the server. Both sides import from this file.
+import type { UIMessage } from "ai";
 import { z } from "zod";
 
 export const MAX_MESSAGES = 20;
 export const MAX_CHARS = 4000;
 
+// useChat keeps each message as a list of parts. This app only uses text, so join the text parts.
+export function textOf(message: Pick<UIMessage, "parts">): string {
+  return message.parts.map((part) => (part.type === "text" ? part.text : "")).join("");
+}
+
 // TypeScript types disappear when the code runs, so they can't check what the browser sends.
-// A zod schema checks the data at runtime, and the matching type is inferred from it.
-export const ChatMessageSchema = z.object({
-  role: z.enum(["user", "assistant"], {
-    error: "Messages can only come from the user or the assistant.",
-  }),
-  content: z
-    .string({ error: "Every message needs some text." })
-    .refine((text) => text.trim() !== "", "Every message needs some text.")
-    .refine((text) => text.length <= MAX_CHARS, `Keep each message under ${MAX_CHARS} characters.`),
-});
+// A zod schema checks the data at runtime. useChat sends every message with an id, a role and its parts.
+const PartSchema = z.discriminatedUnion(
+  "type",
+  [
+    z.object({ type: z.literal("text"), text: z.string() }),
+    // The SDK marks where each model step starts. It carries no text.
+    z.object({ type: z.literal("step-start") }),
+  ],
+  { error: "Messages can only contain text." },
+);
+
+export const ChatMessageSchema = z
+  .object({
+    id: z.string(),
+    role: z.enum(["user", "assistant"], {
+      error: "Messages can only come from the user or the assistant.",
+    }),
+    parts: z.array(PartSchema, { error: "Every message needs some text." }),
+  })
+  .refine((message) => textOf(message).trim() !== "", "Every message needs some text.")
+  .refine((message) => textOf(message).length <= MAX_CHARS, `Keep each message under ${MAX_CHARS} characters.`);
 
 export const ChatRequestSchema = z.object(
   {
@@ -27,17 +44,7 @@ export const ChatRequestSchema = z.object(
   { error: "Send at least one message." },
 );
 
-export type ChatMessage = z.infer<typeof ChatMessageSchema>;
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
-// Block 3: the server answers with the whole reply at once.
-export type ChatReply = { reply: string };
-
-// Any failed request: a message that's safe to show the user.
+// Any request the server rejects before streaming: a message that's safe to show the user.
 export type ChatErrorBody = { error: string };
-
-// Block 4: the server streams newline-delimited JSON records instead.
-export type StreamRecord =
-  | { type: "delta"; text: string } // a piece of reply text
-  | { type: "done" } // the reply finished normally
-  | { type: "error"; message: string }; // the reply failed; don't keep it

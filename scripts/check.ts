@@ -1,6 +1,7 @@
 // Pre-work check: run `npm run check` before the workshop.
 // It makes one tiny request to prove your Node version, .env file and Groq key all work.
-import OpenAI from "openai";
+import { createGroq } from "@ai-sdk/groq";
+import { APICallError, generateText } from "ai";
 
 function fail(message: string): never {
   console.error(`\n✗ ${message}\n`);
@@ -16,27 +17,21 @@ if (!process.env.GROQ_API_KEY) {
   fail("GROQ_API_KEY is missing. Copy .env.example to .env in this folder and paste your key into it.");
 }
 
-if (!process.env.GROQ_BASE_URL) {
-  fail("GROQ_BASE_URL is missing. Copy it from .env.example into your .env file.");
-}
-
-const client = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: process.env.GROQ_BASE_URL,
-});
+const groq = createGroq({ baseURL: process.env.GROQ_BASE_URL || undefined });
 
 try {
-  await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
-    reasoning_effort: "low",
-    max_completion_tokens: 64,
-    messages: [{ role: "user", content: "Reply with the word OK." }],
+  await generateText({
+    model: groq("openai/gpt-oss-20b"),
+    prompt: "Reply with the word OK.",
+    reasoning: "low",
+    maxOutputTokens: 64,
+    maxRetries: 0,
   });
 } catch (error) {
-  if (error instanceof OpenAI.APIError && error.status === 401) {
+  if (APICallError.isInstance(error) && error.statusCode === 401) {
     fail("Groq rejected your key (401). Check GROQ_API_KEY in .env has no spaces or quotes, or create a new key.");
   }
-  if (error instanceof OpenAI.APIError && error.status === 429) {
+  if (APICallError.isInstance(error) && error.statusCode === 429) {
     fail("Groq says too many requests (429). Wait a minute and run the check again.");
   }
   fail(`The request to Groq failed: ${error instanceof Error ? error.message : String(error)}`);

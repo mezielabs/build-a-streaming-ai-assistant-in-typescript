@@ -1,10 +1,10 @@
 # Build a Streaming AI Assistant in TypeScript
 
-A Mezie Labs live workshop. No Python required: in two hours you'll build a writing assistant that streams its replies and remembers the conversation, in TypeScript, with React, Express and a free Groq API key.
+A Mezie Labs live workshop. No Python required: in two hours you'll build a writing assistant that streams its replies and remembers the conversation, in TypeScript, with React, Express, the [AI SDK](https://ai-sdk.dev) and a free Groq API key.
 
 Ask it for a draft, watch the draft arrive word by word, then refine it with follow-ups like "make it shorter" or "more formal".
 
-You should be comfortable with React basics (components and `useState`) and with reading TypeScript. The page is already built, so you'll spend the two hours on the AI parts: the server route and the `useChat` hook.
+You should be comfortable with React basics (components and `useState`) and with reading TypeScript. The page is already built, so you'll spend the two hours on the AI parts: the server route that calls the model, and the hook that connects the page to it with the AI SDK's `useChat`.
 
 ## Before the workshop
 
@@ -71,8 +71,8 @@ Your own work is saved in the stash, and your `.env` file stays where it is. Sta
 | --- | --- | --- |
 | `main` | The starter: the page loads, nothing calls Groq yet | Before the workshop |
 | `checkpoint/first-call` | `examples/first-call.ts` makes a real request | Behind at 0:38 |
-| `checkpoint/chat` | Chat with memory, without streaming | Behind at 1:01, or in the break |
-| `checkpoint/streaming` | Streaming replies, saved only when `done` arrives | Behind at 1:43 |
+| `checkpoint/chat` | Chat with memory: the server route and `useChat` | Behind at 1:01, or in the break |
+| `checkpoint/streaming` | Failed, cut-off and stopped replies roll back instead of staying in the history | Behind at 1:43 |
 | `reference` | The finished app | After the workshop |
 
 ## Commands
@@ -87,15 +87,14 @@ Your own work is saved in the stash, and your `.env` file stays where it is. Sta
 ## Project layout
 
 ```text
-server.ts               Express server: the /api routes, plus Vite serving the React app
-shared/chat.ts          The contract between browser and server: zod schema and types (provided)
-examples/first-call.ts  Your first model call (block 2)
-src/useChat.ts          The chat logic: history, sending, streaming (blocks 3 and 4)
-src/App.tsx             The page (provided)
-src/ndjson.ts           Reads a streamed response one record at a time (provided)
-src/main.tsx            Mounts the React app (provided)
-src/styles.css          Styles
-scripts/check.ts        The pre-work check
+server.ts                   Express server: the /api routes, plus Vite serving the React app
+shared/chat.ts              The contract between browser and server: zod schema and types (provided)
+examples/first-call.ts      Your first model call (block 2)
+src/useWritingAssistant.ts  The chat logic: useChat, sending, and what counts as history (blocks 3 and 4)
+src/App.tsx                 The page (provided)
+src/main.tsx                Mounts the React app (provided)
+src/styles.css              Styles
+scripts/check.ts            The pre-work check
 ```
 
 Node 22.18 and newer run `.ts` files directly by removing the types, so there's no build step. That only works for syntax that can simply be erased, so this project doesn't use enums or namespaces, and imports include the `.ts` extension. `tsconfig.json` enforces both.
@@ -107,7 +106,7 @@ Node 22.18 and newer run `.ts` files directly by removing the types, so there's 
 
 ## After the workshop: what's missing before this goes public
 
-You're on the `reference` branch: the finished app. It also cancels the Groq request when the browser closes mid-reply, so you don't pay for tokens nobody reads. Before putting an AI feature like this in front of real users, you'd still need:
+You're on the `reference` branch: the finished app. It cancels the Groq request when the browser closes or you press Stop, so you don't pay for tokens nobody reads. Before putting an AI feature like this in front of real users, you'd still need:
 
 - **Saved conversations.** History lives in React state, so a refresh loses it.
 - **Trimming long conversations.** Every turn resends everything, so prompt tokens keep growing until you trim or summarise older turns.
@@ -116,6 +115,6 @@ You're on the `reference` branch: the finished app. It also cancels the Groq req
 - **A production build.** `npm run dev` turns TypeScript into JavaScript on every request. In production you'd run `vite build` once and serve the built files.
 - **Monitoring and deployment.** Log errors and token usage somewhere you'll see them.
 
-Saved conversations and trimming long ones are where the next course picks up. [Building Full-Stack AI Apps with TypeScript](https://mezielabs.com/courses/building-full-stack-ai-apps-with-typescript) uses the same stack and takes it to production: structured output, typed tools, conversations saved in PostgreSQL, compacting long histories, and the AI SDK's `useChat` in place of the one you wrote today.
+Saved conversations and trimming long ones are where the next course picks up. [Building Full-Stack AI Apps with TypeScript](https://mezielabs.com/courses/building-full-stack-ai-apps-with-typescript) uses the same stack and the same AI SDK, and takes it to production: structured output, typed tools, conversations saved in PostgreSQL, and compacting long histories.
 
 Questions? Post them in the workshop channel on the [Mezie Labs Discord](https://discord.gg/buTNVnYDAX).

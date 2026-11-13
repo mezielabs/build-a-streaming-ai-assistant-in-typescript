@@ -4,6 +4,8 @@ import { z } from "zod";
 
 export const MAX_MESSAGES = 20;
 export const MAX_CHARS = 4000;
+// A reply can run longer than what the user types (up to 1,024 output tokens), so it gets more room.
+export const MAX_REPLY_CHARS = 16000;
 
 // useChat keeps each message as a list of parts. This app only uses text, so join the text parts.
 export function textOf(message: Pick<UIMessage, "parts">): string {
@@ -31,7 +33,10 @@ export const ChatMessageSchema = z
     parts: z.array(PartSchema, { error: "Every message needs some text." }),
   })
   .refine((message) => textOf(message).trim() !== "", "Every message needs some text.")
-  .refine((message) => textOf(message).length <= MAX_CHARS, `Keep each message under ${MAX_CHARS} characters.`);
+  .refine(
+    (message) => textOf(message).length <= (message.role === "user" ? MAX_CHARS : MAX_REPLY_CHARS),
+    `Keep each message under ${MAX_CHARS} characters.`,
+  );
 
 export const ChatRequestSchema = z.object(
   {

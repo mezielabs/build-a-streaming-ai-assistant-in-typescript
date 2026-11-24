@@ -35,7 +35,7 @@ Get all of this working **before the session starts**. There's no setup help dur
    ```
 
 6. **Start the app** with `npm run dev`, then open [http://localhost:3000](http://localhost:3000). You should see the Writing assistant page. Sending a message shows "Not built yet"; that's what the workshop is for. If it says `.env: not found`, go back to step 4.
-7. **Join the [Mezie Labs Discord](https://discord.gg/buTNVnYDAX)** and the workshop channel. Post setup questions there, with the error text and the command you ran.
+7. **Join the [workshop channel on the Mezie Labs Discord](https://discord.gg/Ge9KFwKEe9)**. Post setup questions there, with the error text and the command you ran.
 8. **Test your Google Meet connection**, including screen sharing and chat.
 
 ## Agenda (2 hours)

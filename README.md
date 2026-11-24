@@ -117,4 +117,4 @@ You're on the `reference` branch: the finished app. It cancels the Groq request 
 
 Saved conversations and trimming long ones are where the next course picks up. [Building Full-Stack AI Apps with TypeScript](https://mezielabs.com/courses/building-full-stack-ai-apps-with-typescript) uses the same stack and the same AI SDK, and takes it to production: structured output, typed tools, conversations saved in PostgreSQL, and compacting long histories.
 
-Questions? Post them in the workshop channel on the [Mezie Labs Discord](https://discord.gg/buTNVnYDAX).
+Questions? Post them in the [workshop channel on the Mezie Labs Discord](https://discord.gg/Ge9KFwKEe9).

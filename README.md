@@ -36,7 +36,7 @@ Get all of this working **before the session starts**. There's no setup help dur
 
 6. **Start the app** with `npm run dev`, then open [http://localhost:3000](http://localhost:3000). You should see the Writing assistant page. Sending a message shows "Not built yet"; that's what the workshop is for. If it says `.env: not found`, go back to step 4.
 7. **Join the [workshop channel on the Mezie Labs Discord](https://discord.gg/Ge9KFwKEe9)**. Post setup questions there, with the error text and the command you ran.
-8. **Test your Google Meet connection**, including screen sharing and chat.
+8. **On the day, join from your laptop's browser.** The session runs on Zoho Meeting: use the link in your registration email. You don't need a Zoho account or the app (on a phone, Zoho asks you to install it, so use your laptop).
 
 ## Agenda (2 hours)
 
@@ -44,16 +44,16 @@ Get all of this working **before the session starts**. There's no setup help dur
 | --- | --- |
 | 0:00 | Open and demo |
 | 0:08 | How LLMs work |
-| 0:23 | First call from Node |
-| 0:38 | Chat with memory |
-| 1:03 | Break |
-| 1:08 | Streaming |
-| 1:45 | Break it, watch it grow |
-| 1:52 | Close |
+| 0:18 | First call from Node |
+| 0:33 | Chat with memory |
+| 1:00 | Break |
+| 1:05 | Handling failures and interrupted streams |
+| 1:40 | Failure tests and token growth |
+| 1:50 | Close |
 
 ## During the workshop: the help protocol
 
-1. At each checkpoint, post `DONE` or `HELP: <one-line error>` in Google Meet chat.
+1. At each checkpoint, post `DONE` or `HELP: <one-line error>` in the Zoho Meeting chat.
 2. Paste error text, not screenshots.
 3. Stuck for three minutes? Rejoin from the checkpoint branch and keep building. Bring the problem to the break, or to the workshop channel on Discord afterwards.
 
@@ -70,9 +70,9 @@ Your own work is saved in the stash, and your `.env` file stays where it is. Sta
 | Branch | What it holds | Use it when |
 | --- | --- | --- |
 | `main` | The starter: the page loads, nothing calls Groq yet | Before the workshop |
-| `checkpoint/first-call` | `examples/first-call.ts` makes a real request | Behind at 0:38 |
-| `checkpoint/chat` | Chat with memory: the server route and `useChat` | Behind at 1:01, or in the break |
-| `checkpoint/streaming` | Failed, cut-off and stopped replies roll back instead of staying in the history | Behind at 1:43 |
+| `checkpoint/first-call` | `examples/first-call.ts` makes a real request | Behind at 0:33 |
+| `checkpoint/chat` | Chat with memory: the server route and `useChat` | Behind at 0:58, or in the break |
+| `checkpoint/streaming` | Failed, cut-off and stopped replies roll back instead of staying in the history | Behind at 1:38 |
 | `reference` | The finished app | After the workshop |
 
 ## Commands
